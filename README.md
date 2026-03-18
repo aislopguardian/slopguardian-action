@@ -331,32 +331,14 @@ jobs:
 
 ## User Tiers
 
-```mermaid
-flowchart LR
-    subgraph TIERS
-        direction LR
-        BL["BLOCKED\nauto-close\nno analysis"]
-        NM["NORMAL\nfull scan\n1.0x"]
-        NW["NEW\n0 merged PRs\n1.5x"]
-        RP["REPEAT\n3+ closures\n2.0x"]
-        TR["TRUSTED\n0.5x"]
-    end
-
-    style BL fill:#ef4444,color:#fff
-    style NM fill:#6b7280,color:#fff
-    style NW fill:#f59e0b,color:#000
-    style RP fill:#dc2626,color:#fff
-    style TR fill:#22c55e,color:#fff
-```
-
-| Tier | Behavior |
-|---|---|
-| Blocked | Auto-close, no analysis |
-| Normal | Full analysis, 1.0x multiplier |
-| New contributor (0 merged PRs) | 1.5x score multiplier |
-| Repeat offender (3+ past closures) | 2.0x score multiplier |
-| Trusted | 0.5x score multiplier |
-| Collaborator | Skip analysis (configurable) |
+| Tier | Score Multiplier | Behavior |
+|---|:---:|---|
+| Blocked | -- | Auto-close, no analysis |
+| Normal | 1.0x | Full analysis |
+| New contributor (0 merged PRs) | 1.5x | Stricter scoring |
+| Repeat offender (3+ past closures) | 2.0x | Escalated scoring |
+| Trusted | 0.5x | Relaxed scoring |
+| Collaborator | -- | Skip analysis (configurable) |
 
 ---
 
