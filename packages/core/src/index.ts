@@ -5,6 +5,7 @@ export { scoreSignals } from "./scoring/scorer.js";
 export { scoreToVerdict } from "./scoring/thresholds.js";
 export { PatternRegistry } from "./patterns/registry.js";
 export { loadConfig } from "./config/loader.js";
+export { DEFAULT_CONFIG } from "./config/defaults.js";
 export { LexicalDetector } from "./detectors/lexical.js";
 export { StructuralDetector } from "./detectors/structural.js";
 export { SemanticDetector } from "./detectors/semantic.js";

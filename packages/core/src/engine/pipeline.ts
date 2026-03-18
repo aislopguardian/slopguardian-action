@@ -1,5 +1,4 @@
 import { performance } from "node:perf_hooks";
-import { type Result, ok } from "neverthrow";
 import type { Detector, DetectorError, DetectorInput } from "../detectors/base.js";
 import type { Signal } from "../types/detection.js";
 
@@ -12,7 +11,7 @@ export interface PipelineResult {
 export async function runDetectorPipeline(
   detectors: Detector[],
   input: DetectorInput,
-): Promise<Result<PipelineResult, DetectorError>> {
+): Promise<PipelineResult> {
   const allSignals: Signal[] = [];
   const timings = new Map<string, number>();
   const errors: DetectorError[] = [];
@@ -30,5 +29,5 @@ export async function runDetectorPipeline(
     }
   }
 
-  return ok({ signals: allSignals, timings, errors });
+  return { signals: allSignals, timings, errors };
 }

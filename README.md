@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Catches AI-generated slop in your GitHub PRs and issues.</strong><br>
-  31 checks. No AI required. Set up in 30 seconds.
+  Multiple detectors, 9 pattern files, zero AI required. Set up in 30 seconds.
 </p>
 
 <p align="center">
@@ -158,23 +158,33 @@ flowchart LR
 
 | Signal | Detection Method | Score |
 |---|---|:---:|
-| AI identity leaks | `"As an AI language model..."` in PR body or code | **5** |
+| AI identity leaks | `"As an AI language model..."` in PR body or code | **4-5** |
 | Filler phrases | `"It's important to note"`, `"Moving forward"` | **2** |
-| Buzzword soup | `"Robust and scalable"`, `"comprehensive solution"` | **2** |
-| Code comment slop | Comments that restate the next line of code | **2** |
+| Buzzword soup | `"Robust and scalable"`, `"comprehensive solution"` | **2-3** |
+| Code comment slop | Comments that restate the next line of code | **1-2** |
+| Unused imports | Imports never referenced in the file | **2** |
+| High comment-to-code ratio | >40% comment lines in a code file | **3** |
+| Generic variable names | `data`, `result`, `temp`, `value` | **1** |
+| Generic commit messages | `"update"`, `"fix bug"`, `"misc changes"` | **1-3** |
+| Duplicate code blocks | >85% trigram similarity between blocks | **3** |
+| Blocked source branch | PR from main/master | **4** |
+| Honeypot triggered | Trap word from PR template found in body | **5** |
+| Self-praise | `"elegant solution"`, `"follows best practices"` | **1-2** |
+| False confidence | `"Great question!"`, `"Absolutely!"` | **1-2** |
+| High filler density | >30% filler words in a paragraph | **2-5** |
+| Hedging overload | `"might potentially"`, stacked qualifiers | **1-5** |
+
+#### Planned Signals
+
+These inputs are accepted for forward compatibility but not yet enforced:
+
+| Signal | Detection Method | Score |
+|---|---|:---:|
 | Cosmetic-only diffs | Changed lines identical after trimming whitespace | **3** |
 | Massive unfocused dumps | >500 added lines across >10 files | **4** |
 | Dead code injection | Functions added but never called | **3** |
-| Unused import floods | Imports never referenced in the file | **3** |
-| Generic commit messages | `"update"`, `"fix bug"`, `"misc changes"` | **2** |
 | Missing motivation | PR explains what but never says why | **2** |
 | Features without tests | New code files, zero test files | **2** |
-| Blocked source branch | PR from main/master | **4** |
-| Honeypot triggered | Trap word from PR template found in body | **5** |
-| Self-praise | `"elegant solution"`, `"follows best practices"` | **1** |
-| False confidence | `"Great question!"`, `"Absolutely!"` | **1** |
-| High filler density | >30% filler words in a paragraph | **2-5** |
-| Hedging overload | `"might potentially"`, stacked qualifiers | **2-5** |
 | Language mismatch | >50% of added files in unexpected language | **3** |
 | Community reactions | Excess thumbs-down or confused reactions | **3** |
 
@@ -185,6 +195,11 @@ flowchart LR
 | Hallucinated file paths | Referenced file does not exist in repo | **5** |
 | Hallucinated functions | Function name not found in referenced file | **5** |
 | Hallucinated line numbers | Line number exceeds file length | **4** |
+
+#### Planned Issue Signals
+
+| Signal | Detection Method | Score |
+|---|---|:---:|
 | Missing repro steps | No "steps to reproduce" section | **3** |
 | Non-existent versions | Referenced version not in releases | **4** |
 | Duplicate issues | >85% similarity to an open issue | **3** |
@@ -206,23 +221,31 @@ Non-accusatory tone. Never says "AI-generated." Says "this pattern is commonly a
 ### Example Output
 
 ```markdown
-## SlopGuardian Review
+## SlopGuardian — 8 · suspicious
 
-**Suspicious** -- Score: **8**
+<details open>
+<summary>3 signals found</summary>
 
-| | Detector | Location | Finding | Score |
-|---|---|---|---|---|
-| X | lexical | `README.md:12` | AI identity leak | 5 |
-| ! | lexical | `README.md:34` | Filler phrase: "It's important to note" | 2 |
-| i | code-smell | `src/utils.ts:7` | Generic variable name 'data' | 1 |
+| | Signal | Location | Detail | Score |
+|---|---|---|---|---:|
+| error | lexical | `README.md:12` | AI identity leak | 5 |
+| warning | lexical | `README.md:34` | Filler phrase: "It's important to note" | 2 |
+| info | code-smell | `src/utils.ts:7` | Generic variable name 'data' | 1 |
 
-### What you can do
-- Remove or rephrase the AI identity pattern
-- Delete filler phrases -- just state the thing
-- Rename 'data' to describe what it holds (e.g., 'userRecords')
+</details>
 
----
-*Add the `human-verified` label to bypass this check.*
+<details>
+<summary>How to fix</summary>
+
+- **lexical**: Remove or rephrase the AI identity pattern
+- **lexical**: Delete filler phrases — just state the thing
+- **code-smell**: Rename 'data' to describe what it holds (e.g., 'userRecords')
+
+</details>
+
+> Score breakdown: lexical(7) + code-smell(1) = 8
+
+> Add the `human-verified` label to dismiss this review.
 ```
 
 ---
@@ -250,7 +273,7 @@ AI tools tend to follow instructions in comments. If the trap word shows up in t
 
 ## Optional LLM Analysis
 
-Add an API key for a secondary AI-based review on top of the 31 static checks:
+Add an API key for a secondary AI-based review on top of the static checks:
 
 ```yaml
 - uses: aislopguardian/slopguardian-action@v0
@@ -287,7 +310,7 @@ Supported providers: `openrouter`, `openai`, `anthropic`, `ollama`, `custom`.
 | `new-contributor-multiplier` | `1.5` | Score multiplier for 0-merged-PR users |
 | `repeat-offender-threshold` | `3` | Past closures before escalation |
 | `repeat-offender-multiplier` | `2.0` | Score multiplier for repeat offenders |
-| `grace-period-hours` | `0` | Hours before auto-close |
+| `grace-period-hours` | `0` | Hours before auto-close (planned) |
 | `on-warn` | `label,comment` | Actions on suspicious verdict |
 | `on-close` | `label,comment,close` | Actions on likely-slop verdict |
 
@@ -327,7 +350,9 @@ exclude:
 
 ---
 
-## Grace Period
+## Grace Period (planned)
+
+> **Note:** The `grace-period-hours` input is accepted for forward compatibility but the grace period logic is not yet enforced. PRs that exceed the fail threshold are closed immediately.
 
 Delay auto-close to give the author time to fix:
 

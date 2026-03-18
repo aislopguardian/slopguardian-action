@@ -1,0 +1,39 @@
+# Changelog
+
+## 0.2.0
+
+### Fixed
+
+- **Scoring double-weight bug**: `detectorWeights` and `categoryWeights` both applied to the same IDs, squaring the intended weight (semantic was 0.64x instead of 0.8x). `detectorWeights` now defaults to empty so each category applies one weight.
+- **Action bypassed core scoring**: `main.ts` summed raw signal scores with `reduce()`, ignoring the weighted scorer entirely. Now uses `scoreToVerdict` from core.
+- **Hardcoded fallback config**: `main.ts` duplicated the 30-line `DEFAULT_CONFIG` inline. Now imports it from core.
+- **Dead error path in pipeline**: `runDetectorPipeline` always returned `ok()`, making the `isErr()` check in scanner dead code. Pipeline now returns `PipelineResult` directly.
+- **Patterns directory path**: Used `process.cwd()` which points to the user's workspace, not the action repo. Now uses `__dirname`-relative path.
+- **`formatJson` ignored version parameter**: Accepted `_version` but hardcoded `version: 1`. Removed the dead parameter.
+- **CRLF line endings**: Fixed across the repo (biome expects LF).
+
+### Changed
+
+- **Comment format v2**: Compact one-line header with score and verdict. Signals in collapsible `<details open>` table. "How to fix" collapsed by default. Score breakdown in footer. Marker moved to end of comment.
+- **`main.ts` split into functions**: `run()` was 207 lines. Now split into `buildContributorVerdict`, `analyzePr`, `analyzeIssue`, `applyVerdict` — each under 50 lines.
+
+### Removed
+
+- Dead `config/schema.ts` re-export (nothing imported it).
+
+### Added
+
+- **Hallucination detector tests** (22 tests): `extractStackTraceRefs` and `verifyStackTraces` — file existence, function lookup, line count verification, deduplication, edge cases.
+- **Reporter tests** (34 tests): markdown, JSON, SARIF output formatting, verdict labels, signal tables, suggestions dedup.
+- `DEFAULT_CONFIG` exported from core's public API.
+
+### Documentation
+
+- README: replaced inaccurate "31 checks" with actual count.
+- README: corrected signal score ranges against actual pattern files.
+- README: marked unimplemented features (grace period, language mismatch, negative reactions) as "(planned)".
+- README: updated example comment to match v2 format.
+
+## 0.1.0
+
+Initial release. Core detection engine with 9 pattern files, 4 detectors (lexical, structural, semantic, code-smell), GitHub Action with honeypot, hallucination, and contributor checks.

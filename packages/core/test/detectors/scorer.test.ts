@@ -118,7 +118,7 @@ describe("scoreSignals", () => {
     ];
 
     const result = scoreSignals(signals, DEFAULT_WEIGHTS);
-    // semantic weight is 0.8 * 0.8 = 0.64, so 10 * 0.64 = 6.4
+    // semantic category weight is 0.8, so 10 * 0.8 = 8
     expect(result.totalScore).toBeLessThan(10);
     expect(result.totalScore).toBeGreaterThan(0);
   });
