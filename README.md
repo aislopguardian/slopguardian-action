@@ -63,70 +63,6 @@ flowchart TD
     style Y fill:#6b7280,color:#fff
 ```
 
-### Detection Pipeline
-
-```mermaid
-flowchart LR
-    IN["Input\nfile / text"] --> LEX
-
-    subgraph DETECTORS["Detector Pipeline"]
-        LEX["Lexical\n40+ regex"] --> STR["Structural\ntrigram Jaccard"]
-        STR --> SEM["Semantic\nfiller + hedging"]
-        SEM --> CS["Code Smell\ncomments, names, imports"]
-    end
-
-    subgraph PATTERNS["patterns/en/*.yaml"]
-        P1["ai-identity"]
-        P2["filler-phrases"]
-        P3["buzzword-soup"]
-        P4["code-comment-slop"]
-        P5["false-confidence"]
-        P6["hedging-excess"]
-        P7["generic-commit"]
-        P8["self-praise"]
-        P9["bullet-vomit"]
-    end
-
-    PATTERNS -.->|"loaded at startup"| LEX
-
-    CS --> SCORE["Scorer\nweighted sum\npattern.max cap"]
-    SCORE --> OUT["ScanResult\nsignals, score, verdict"]
-
-    style DETECTORS fill:#1e293b,color:#e2e8f0
-    style PATTERNS fill:#1e293b,color:#e2e8f0
-    style OUT fill:#3b82f6,color:#fff
-```
-
-### Scoring Scale
-
-```mermaid
-%%{init: {'theme': 'dark'}}%%
-block-beta
-    columns 3
-    block:clean:1
-        columns 1
-        cl["CLEAN"]
-        cs["score 0 - 5"]
-        ca["pass silently"]
-    end
-    block:warn:1
-        columns 1
-        wl["SUSPICIOUS"]
-        ws["score 6 - 11"]
-        wa["label + comment"]
-    end
-    block:slop:1
-        columns 1
-        sl["LIKELY SLOP"]
-        ss["score 12+"]
-        sa["label + comment + close"]
-    end
-
-    style clean fill:#22c55e,color:#fff
-    style warn fill:#eab308,color:#000
-    style slop fill:#ef4444,color:#fff
-```
-
 ---
 
 ## Quick Start
@@ -421,6 +357,58 @@ slopguardian-action/
   packages/
     core/       detection engine, 9 YAML pattern files, scoring, 3 output formats
     action/     GitHub Action + honeypot, hallucination, contributor checks
+```
+
+### Detection Pipeline Internals
+
+```mermaid
+flowchart TD
+    IN["Input text / file"] --> LEX
+
+    LEX["Lexical Detector"]
+    LEX --> LEX_D["Loads 9 YAML pattern files at startup\nCompiles 40+ regexes once, runs per line"]
+
+    LEX_D --> STR["Structural Detector"]
+    STR --> STR_D["Splits content into blocks\nCompares via trigram Jaccard similarity\nFlags blocks above 85% match"]
+
+    STR_D --> SEM["Semantic Detector"]
+    SEM --> SEM_D["Calculates filler-to-content ratio per paragraph\nMeasures hedging phrase density\nFlags when ratio exceeds threshold"]
+
+    SEM_D --> CS["Code Smell Detector"]
+    CS --> CS_D["Comment-to-code ratio check\nRestating comment detection via word overlap\nGeneric variable name scan\nUnused import detection"]
+
+    CS_D --> SCORE["Scorer"]
+    SCORE --> SCORE_D["Weighted sum across all signals\nPer-detector weight multiplier from config\nCaps individual pattern at pattern.max\nMaps total to verdict via thresholds"]
+
+    SCORE_D --> OUT["ScanResult"]
+
+    subgraph YAML["patterns/en/*.yaml"]
+        direction LR
+        Y1["ai-identity\nscore: 5"]
+        Y2["filler-phrases\nscore: 2"]
+        Y3["buzzword-soup\nscore: 2"]
+        Y4["code-comment-slop\nscore: 2"]
+        Y5["false-confidence\nscore: 1"]
+        Y6["hedging-excess\nscore: 2"]
+        Y7["generic-commit\nscore: 2"]
+        Y8["self-praise\nscore: 1"]
+        Y9["bullet-vomit\nscore: 2"]
+    end
+
+    YAML -.->|"loaded once at startup"| LEX
+
+    style LEX fill:#3b82f6,color:#fff
+    style STR fill:#8b5cf6,color:#fff
+    style SEM fill:#ec4899,color:#fff
+    style CS fill:#f97316,color:#fff
+    style SCORE fill:#14b8a6,color:#fff
+    style OUT fill:#22c55e,color:#fff
+    style YAML fill:#1e293b,color:#e2e8f0
+    style LEX_D fill:#1e293b,color:#94a3b8
+    style STR_D fill:#1e293b,color:#94a3b8
+    style SEM_D fill:#1e293b,color:#94a3b8
+    style CS_D fill:#1e293b,color:#94a3b8
+    style SCORE_D fill:#1e293b,color:#94a3b8
 ```
 
 ### Adding Detection Patterns
