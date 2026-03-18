@@ -1,0 +1,19 @@
+id: bullet-vomit
+name: Bullet Point Vomit
+category: structural
+severity: info
+language: en
+score-base: 2
+patterns:
+  - pattern: "^\\s*[-*]\\s+.{10,}$"
+    flags: "gm"
+    context: prose
+    score: 0
+    max: 1
+    description: "Bullet point line — scored by density, not individually"
+tests:
+  should-match:
+    - "- Added new feature for detecting AI patterns\n- Updated the configuration schema\n- Fixed bug in pattern loading\n- Improved error messages\n- Added tests for all detectors\n- Updated documentation\n- Cleaned up unused imports\n- Refactored scoring logic\n- Added SARIF output support"
+  should-not-match:
+    - "This PR adds honeypot detection.\n\nWhen a PR template contains a hidden comment with trap words, and the PR body includes those words, the bot flags it.\n\n- Parses HTML comments from template\n- Checks PR body for matches\n- Scores 5 per trap word found"
+    - "Fixed the YAML parser.\n\nThe js-yaml library throws on duplicate keys. We now catch that and report which key is duplicated.\n\n- Added try/catch around yaml.load\n- Extract duplicate key name from error message"

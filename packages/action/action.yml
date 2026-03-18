@@ -1,0 +1,107 @@
+name: "SlopGuardian"
+description: "Catches AI-generated slop in PRs and issues. 31 checks, no AI required."
+author: "slopguardian"
+
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  config:
+    description: "Path to .slopguardian.yml config file"
+    required: false
+    default: ".slopguardian.yml"
+  fail-on-error:
+    description: "Fail the check if score exceeds fail threshold"
+    required: false
+    default: "true"
+  fail-threshold:
+    description: "Score at or above this triggers failure (overrides config)"
+    required: false
+  warn-threshold:
+    description: "Score at or above this triggers warning (overrides config)"
+    required: false
+  ai-key:
+    description: "API key for optional LLM analysis (OpenRouter or direct provider)"
+    required: false
+  ai-provider:
+    description: "AI provider: openrouter, openai, anthropic, ollama, custom"
+    required: false
+    default: "openrouter"
+  ai-model:
+    description: "Model identifier for AI analysis"
+    required: false
+  honeypot-terms:
+    description: "Comma-separated trap words to detect in PR body"
+    required: false
+  exempt-users:
+    description: "Comma-separated GitHub usernames that bypass all checks"
+    required: false
+  exempt-labels:
+    description: "Labels that bypass all checks"
+    required: false
+    default: "human-verified"
+  blocked-users:
+    description: "Comma-separated usernames to auto-close without analysis"
+    required: false
+  trusted-users:
+    description: "Comma-separated usernames with 0.5x score multiplier"
+    required: false
+  blocked-source-branches:
+    description: "PRs from these branches get flagged"
+    required: false
+    default: "main,master"
+  exclude-collaborators:
+    description: "Skip analysis for repo collaborators"
+    required: false
+    default: "true"
+  contributor-history-check:
+    description: "Enable stricter scoring for new contributors"
+    required: false
+    default: "true"
+  new-contributor-multiplier:
+    description: "Score multiplier for users with 0 merged PRs"
+    required: false
+    default: "1.5"
+  repeat-offender-threshold:
+    description: "Past slop closures before escalation"
+    required: false
+    default: "3"
+  repeat-offender-multiplier:
+    description: "Score multiplier for repeat offenders"
+    required: false
+    default: "2.0"
+  grace-period-hours:
+    description: "Hours before auto-close (0 = immediate)"
+    required: false
+    default: "0"
+  on-warn:
+    description: "Actions on warning verdict (comma-separated: label, comment)"
+    required: false
+    default: "label,comment"
+  on-close:
+    description: "Actions on likely-slop verdict (comma-separated: label, comment, close)"
+    required: false
+    default: "label,comment,close"
+  max-negative-reactions:
+    description: "Negative reaction count that triggers community signal"
+    required: false
+    default: "3"
+  check-language-mismatch:
+    description: "Detect foreign language file additions"
+    required: false
+    default: "true"
+
+outputs:
+  verdict:
+    description: "clean, suspicious, or likely-slop"
+  score:
+    description: "Total weighted score"
+  signal-count:
+    description: "Number of signals detected"
+  report:
+    description: "Markdown report"
+
+runs:
+  using: "node20"
+  main: "dist/main.js"
