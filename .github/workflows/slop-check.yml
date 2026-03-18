@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - uses: ./packages/action
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           config: ".slopguardian.yml"
