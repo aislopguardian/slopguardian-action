@@ -24,3 +24,4 @@ jobs:
           honeypot-terms: "SLOPGUARDIAN"
           exclude-collaborators: "false"
           fail-on-error: "false"
+          on-close: "label,comment"
