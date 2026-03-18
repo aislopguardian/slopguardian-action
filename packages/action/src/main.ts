@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { Scanner, loadConfig } from "@slopguardian/core";
@@ -95,6 +96,7 @@ async function run(): Promise<void> {
       const fileChanges = parseDiff(diff);
 
       // Run core scanner on changed file contents
+      const patternsDir = resolve(process.cwd(), "packages", "core", "patterns");
       const scanner = new Scanner(
         config ?? {
           version: 1,
@@ -120,6 +122,7 @@ async function run(): Promise<void> {
           include: ["**/*.ts", "**/*.md"],
           exclude: ["node_modules/**", "dist/**"],
         },
+        patternsDir,
       );
 
       const filesToScan = fileChanges
