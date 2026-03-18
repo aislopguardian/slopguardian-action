@@ -1,8 +1,8 @@
 import { resolve } from "node:path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { Scanner, loadConfig } from "@slopguardian/core";
-import type { Signal } from "@slopguardian/core";
+import { DEFAULT_CONFIG, Scanner, loadConfig, scoreToVerdict } from "@slopguardian/core";
+import type { Signal, SlopGuardianConfig, Verdict } from "@slopguardian/core";
 import { emitAnnotations } from "./annotations.js";
 import { buildReviewComment } from "./comment-builder.js";
 import { evaluateContributor } from "./contributor.js";
@@ -19,9 +19,10 @@ import {
   isCollaborator,
   upsertComment,
 } from "./github.js";
+import type { GitHubClient } from "./github.js";
 import { extractStackTraceRefs, verifyStackTraces } from "./hallucination.js";
 import { detectHoneypot } from "./honeypot.js";
-import { parseActionInputs } from "./inputs.js";
+import { type ActionInputs, parseActionInputs } from "./inputs.js";
 import { setActionOutputs } from "./outputs.js";
 
 async function run(): Promise<void> {
@@ -40,35 +41,13 @@ async function run(): Promise<void> {
     const username =
       context.payload.pull_request?.user?.login ?? context.payload.issue?.user?.login ?? "";
 
-    // Check exempt labels before doing any work
     const isExempt = await hasExemptLabel(client, issueNumber, inputs.exemptLabels);
     if (isExempt) {
       core.info(`Exempt label found on #${issueNumber} — skipping`);
       return;
     }
 
-    // Evaluate contributor status
-    const contributorVerdict = evaluateContributor(
-      {
-        username,
-        mergedPrCount: inputs.contributorHistoryCheck
-          ? await getMergedPrCount(client, username)
-          : 1,
-        pastSlopClosures: inputs.contributorHistoryCheck
-          ? await getPastSlopClosures(client, username, "slopguardian")
-          : 0,
-        isCollaborator: await isCollaborator(client, username),
-      },
-      {
-        blockedUsers: inputs.blockedUsers,
-        trustedUsers: inputs.trustedUsers,
-        exemptUsers: inputs.exemptUsers,
-        excludeCollaborators: inputs.excludeCollaborators,
-        newContributorMultiplier: inputs.newContributorMultiplier,
-        repeatOffenderThreshold: inputs.repeatOffenderThreshold,
-        repeatOffenderMultiplier: inputs.repeatOffenderMultiplier,
-      },
-    );
+    const contributorVerdict = await buildContributorVerdict(client, username, inputs);
 
     if (contributorVerdict.action === "block") {
       await closeIssue(client, issueNumber);
@@ -81,156 +60,168 @@ async function run(): Promise<void> {
       return;
     }
 
-    // Load config and scan
     const configResult = loadConfig(inputs.config);
     if (configResult.isErr()) {
       core.warning(`Config error: ${configResult.error.message} — using defaults`);
     }
-    const config = configResult.isOk() ? configResult.value : undefined;
+    const config = configResult.isOk() ? configResult.value : DEFAULT_CONFIG;
 
     const allSignals: Signal[] = [...contributorVerdict.signals];
 
-    // PR-specific analysis
     if (context.payload.pull_request) {
-      const diff = await getPrDiff(client, issueNumber);
-      const fileChanges = parseDiff(diff);
-
-      // Run core scanner on changed file contents
-      const patternsDir = resolve(process.cwd(), "packages", "core", "patterns");
-      const scanner = new Scanner(
-        config ?? {
-          version: 1,
-          thresholds: { warn: 6, fail: 12 },
-          detectors: {
-            lexical: { enabled: true, weight: 1, languages: ["en"] },
-            structural: { enabled: true, weight: 1, "duplicate-threshold": 0.85 },
-            semantic: {
-              enabled: true,
-              weight: 1,
-              "max-filler-ratio": 0.3,
-              "max-hedging-density": 0.2,
-            },
-            "code-smell": {
-              enabled: true,
-              weight: 1,
-              "max-comment-ratio": 0.4,
-              "flag-generic-names": true,
-            },
-            consistency: { enabled: true, weight: 1, "min-files": 3 },
-          },
-          ai: { enabled: false, provider: "openrouter", model: "", "api-key-env": "", cache: true },
-          include: ["**/*.ts", "**/*.md"],
-          exclude: ["node_modules/**", "dist/**"],
-        },
-        patternsDir,
-      );
-
-      const filesToScan = fileChanges
-        .filter((f) => f.status !== "deleted")
-        .map((f) => ({
-          filePath: f.filePath,
-          content: f.addedLines.map((l) => l.content).join("\n"),
-          diff: f.patch,
-        }));
-
-      if (filesToScan.length > 0) {
-        const scanResult = await scanner.scan(filesToScan);
-        if (scanResult.isOk()) {
-          allSignals.push(...scanResult.value.signals);
-        }
-      }
-
-      // Honeypot check
-      const prBody = context.payload.pull_request.body ?? "";
-      allSignals.push(...detectHoneypot(prBody, { terms: inputs.honeypotTerms }));
-
-      // Blocked source branch
-      const headBranch = context.payload.pull_request.head?.ref ?? "";
-      if (inputs.blockedSourceBranches.includes(headBranch)) {
-        allSignals.push({
-          detectorId: "blocked-branch",
-          category: "consistency",
-          severity: "error",
-          score: 4,
-          message: `PR opened from blocked branch: ${headBranch}`,
-          suggestion: "Create a feature branch instead of opening PRs from main/master",
-        });
-      }
+      const prSignals = await analyzePr(client, issueNumber, config, inputs);
+      allSignals.push(...prSignals);
     }
 
-    // Issue-specific analysis
     if (context.payload.issue) {
-      const issueBody = context.payload.issue.body ?? "";
-      const stackRefs = extractStackTraceRefs(issueBody);
-
-      if (stackRefs.length > 0) {
-        const hallucinationSignals = await verifyStackTraces(stackRefs, {
-          fileExists: async (path) => (await getFileContent(client, path)) !== null,
-          fileLineCount: async (path) => {
-            const content = await getFileContent(client, path);
-            return content ? content.split("\n").length : null;
-          },
-          fileContains: async (path, text) => {
-            const content = await getFileContent(client, path);
-            return content ? content.includes(text) : false;
-          },
-        });
-        allSignals.push(...hallucinationSignals);
-      }
+      const issueSignals = await analyzeIssue(client, context.payload.issue.body ?? "");
+      allSignals.push(...issueSignals);
     }
 
-    // Score with contributor multiplier
+    const warnThreshold = inputs.warnThreshold ?? config.thresholds.warn;
+    const failThreshold = inputs.failThreshold ?? config.thresholds.fail;
     let totalScore = allSignals.reduce((sum, s) => sum + s.score, 0);
     totalScore = Math.round(totalScore * contributorVerdict.scoreMultiplier);
+    const verdict = scoreToVerdict(totalScore, { warn: warnThreshold, fail: failThreshold });
 
-    const warnThreshold = inputs.warnThreshold ?? config?.thresholds.warn ?? 6;
-    const failThreshold = inputs.failThreshold ?? config?.thresholds.fail ?? 12;
-
-    const verdict =
-      totalScore >= failThreshold
-        ? ("likely-slop" as const)
-        : totalScore >= warnThreshold
-          ? ("suspicious" as const)
-          : ("clean" as const);
-
-    // Build comment and take action
-    const commentBody = buildReviewComment({
-      verdict,
-      score: totalScore,
-      signals: allSignals,
-      exemptLabels: inputs.exemptLabels,
-    });
-
-    const actions =
-      verdict === "likely-slop" ? inputs.onClose : verdict === "suspicious" ? inputs.onWarn : [];
-
-    if (actions.includes("comment")) {
-      await upsertComment(client, issueNumber, commentBody);
-    }
-
-    if (actions.includes("label")) {
-      await addLabel(client, issueNumber, `slopguardian:${verdict}`);
-    }
-
-    if (actions.includes("close") && verdict === "likely-slop") {
-      await closeIssue(client, issueNumber);
-    }
-
-    emitAnnotations(allSignals);
-    setActionOutputs({
-      verdict,
-      score: totalScore,
-      signalCount: allSignals.length,
-      report: commentBody,
-    });
-
-    if (inputs.failOnError && verdict === "likely-slop") {
-      core.setFailed(`SlopGuardian: ${verdict} (score: ${totalScore})`);
-    }
+    await applyVerdict(client, issueNumber, inputs, allSignals, totalScore, verdict);
   } catch (error) {
     core.setFailed(
       `SlopGuardian failed: ${error instanceof Error ? error.message : String(error)}`,
     );
+  }
+}
+
+async function buildContributorVerdict(
+  client: GitHubClient,
+  username: string,
+  inputs: ActionInputs,
+) {
+  return evaluateContributor(
+    {
+      username,
+      mergedPrCount: inputs.contributorHistoryCheck ? await getMergedPrCount(client, username) : 1,
+      pastSlopClosures: inputs.contributorHistoryCheck
+        ? await getPastSlopClosures(client, username, "slopguardian:likely-slop")
+        : 0,
+      isCollaborator: await isCollaborator(client, username),
+    },
+    {
+      blockedUsers: inputs.blockedUsers,
+      trustedUsers: inputs.trustedUsers,
+      exemptUsers: inputs.exemptUsers,
+      excludeCollaborators: inputs.excludeCollaborators,
+      newContributorMultiplier: inputs.newContributorMultiplier,
+      repeatOffenderThreshold: inputs.repeatOffenderThreshold,
+      repeatOffenderMultiplier: inputs.repeatOffenderMultiplier,
+    },
+  );
+}
+
+async function analyzePr(
+  client: GitHubClient,
+  pullNumber: number,
+  config: SlopGuardianConfig,
+  inputs: ActionInputs,
+): Promise<Signal[]> {
+  const signals: Signal[] = [];
+  const diff = await getPrDiff(client, pullNumber);
+  const fileChanges = parseDiff(diff);
+
+  // __dirname resolves relative to the action repo checkout, not the user's workspace
+  const patternsDir = resolve(__dirname, "../../core/patterns");
+  const scanner = new Scanner(config, patternsDir);
+
+  const filesToScan = fileChanges
+    .filter((f) => f.status !== "deleted")
+    .map((f) => ({
+      filePath: f.filePath,
+      content: f.addedLines.map((l) => l.content).join("\n"),
+      diff: f.patch,
+    }));
+
+  if (filesToScan.length > 0) {
+    const scanResult = await scanner.scan(filesToScan);
+    if (scanResult.isOk()) {
+      signals.push(...scanResult.value.signals);
+    }
+  }
+
+  const prBody = github.context.payload.pull_request?.body ?? "";
+  signals.push(...detectHoneypot(prBody, { terms: inputs.honeypotTerms }));
+
+  const headBranch = github.context.payload.pull_request?.head?.ref ?? "";
+  if (inputs.blockedSourceBranches.includes(headBranch)) {
+    signals.push({
+      detectorId: "blocked-branch",
+      category: "consistency",
+      severity: "error",
+      score: 4,
+      message: `PR opened from blocked branch: ${headBranch}`,
+      suggestion: "Create a feature branch instead of opening PRs from main/master",
+    });
+  }
+
+  return signals;
+}
+
+async function analyzeIssue(client: GitHubClient, issueBody: string): Promise<Signal[]> {
+  const stackRefs = extractStackTraceRefs(issueBody);
+  if (stackRefs.length === 0) return [];
+
+  return verifyStackTraces(stackRefs, {
+    fileExists: async (path) => (await getFileContent(client, path)) !== null,
+    fileLineCount: async (path) => {
+      const content = await getFileContent(client, path);
+      return content ? content.split("\n").length : null;
+    },
+    fileContains: async (path, text) => {
+      const content = await getFileContent(client, path);
+      return content ? content.includes(text) : false;
+    },
+  });
+}
+
+async function applyVerdict(
+  client: GitHubClient,
+  issueNumber: number,
+  inputs: ActionInputs,
+  signals: Signal[],
+  totalScore: number,
+  verdict: Verdict,
+): Promise<void> {
+  const commentBody = buildReviewComment({
+    verdict,
+    score: totalScore,
+    signals,
+    exemptLabels: inputs.exemptLabels,
+  });
+
+  const actions =
+    verdict === "likely-slop" ? inputs.onClose : verdict === "suspicious" ? inputs.onWarn : [];
+
+  if (actions.includes("comment")) {
+    await upsertComment(client, issueNumber, commentBody);
+  }
+
+  if (actions.includes("label")) {
+    await addLabel(client, issueNumber, `slopguardian:${verdict}`);
+  }
+
+  if (actions.includes("close") && verdict === "likely-slop") {
+    await closeIssue(client, issueNumber);
+  }
+
+  emitAnnotations(signals);
+  setActionOutputs({
+    verdict,
+    score: totalScore,
+    signalCount: signals.length,
+    report: commentBody,
+  });
+
+  if (inputs.failOnError && verdict === "likely-slop") {
+    core.setFailed(`SlopGuardian: ${verdict} (score: ${totalScore})`);
   }
 }
 

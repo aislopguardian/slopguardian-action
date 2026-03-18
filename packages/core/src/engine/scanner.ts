@@ -85,12 +85,7 @@ export class Scanner {
           diff: file.diff,
         };
 
-        const pipelineResult = await runDetectorPipeline(this.detectors, input);
-        if (pipelineResult.isErr()) {
-          return err({ message: pipelineResult.error.message, cause: pipelineResult.error.cause });
-        }
-
-        const { signals, timings } = pipelineResult.value;
+        const { signals, timings } = await runDetectorPipeline(this.detectors, input);
         allSignals.push(...signals);
         fileResults.set(file.filePath, signals);
 

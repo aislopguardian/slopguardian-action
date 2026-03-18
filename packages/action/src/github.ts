@@ -20,14 +20,14 @@ export async function findExistingComment(
   issueNumber: number,
 ): Promise<number | null> {
   const { octokit, owner, repo } = client;
-  const comments = await octokit.rest.issues.listComments({
+  const allComments = await octokit.paginate(octokit.rest.issues.listComments, {
     owner,
     repo,
     issue_number: issueNumber,
     per_page: 100,
   });
 
-  const existing = comments.data.find((c) => c.body && isOwnComment(c.body));
+  const existing = allComments.find((c) => c.body && isOwnComment(c.body));
   return existing?.id ?? null;
 }
 

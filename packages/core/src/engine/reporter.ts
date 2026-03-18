@@ -46,7 +46,7 @@ export function formatMarkdown(scanResult: ScanResult): MarkdownReport {
   return { summary, signalTable, verdictLine, suggestions: suggestionsText };
 }
 
-export function formatJson(scanResult: ScanResult, _version = "0.1.0"): JsonReport {
+export function formatJson(scanResult: ScanResult): JsonReport {
   return {
     version: 1,
     verdict: scanResult.verdict,
@@ -119,7 +119,7 @@ export function formatReport(options: FormatOptions): string {
     case "markdown":
       return formatMarkdown(options.scanResult).summary;
     case "json":
-      return JSON.stringify(formatJson(options.scanResult, options.version), null, 2);
+      return JSON.stringify(formatJson(options.scanResult), null, 2);
     case "sarif":
       return JSON.stringify(formatSarif(options.scanResult, options.version), null, 2);
   }
