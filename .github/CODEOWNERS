@@ -1,0 +1,11 @@
+# Default owners for the entire repo
+* @aislopguardian/maintainers
+
+# Core detection engine
+packages/core/ @aislopguardian/maintainers
+
+# GitHub Action
+packages/action/ @aislopguardian/maintainers
+
+# Detection patterns — community contributions welcome
+packages/core/patterns/ @aislopguardian/maintainers
