@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  type FileVerifier,
   extractStackTraceRefs,
+  type FileVerifier,
   verifyStackTraces,
 } from "../src/hallucination.js";
 

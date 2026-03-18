@@ -1,4 +1,4 @@
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import type { Detector, DetectorInput } from "../detectors/base.js";
 import { CodeSmellDetector } from "../detectors/code-smell.js";
 import { LexicalDetector } from "../detectors/lexical.js";

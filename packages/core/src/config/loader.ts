@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as yaml from "js-yaml";
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import { type SlopGuardianConfig, SlopGuardianConfigSchema } from "../types/config.js";
 import { DEFAULT_CONFIG } from "./defaults.js";
 

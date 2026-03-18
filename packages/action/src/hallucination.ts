@@ -13,9 +13,9 @@ interface StackTraceRef {
 }
 
 const STACK_TRACE_PATTERNS = [
-  /at\s+(?:(\S+)\s+\()?([\w.\/\\-]+\.(?:ts|js|py|go|rs|java|rb)):(\d+)/g,
+  /at\s+(?:(\S+)\s+\()?([\w./-]+\.(?:ts|js|py|go|rs|java|rb)):(\d+)/g,
   /File "([^"]+)", line (\d+)(?:, in (\w+))?/g,
-  /([\w.\/\\-]+\.(?:ts|js|py|go|rs|java)):(\d+):(\d+)/g,
+  /([\w./-]+\.(?:ts|js|py|go|rs|java)):(\d+):(\d+)/g,
 ];
 
 export function extractStackTraceRefs(issueBody: string): StackTraceRef[] {

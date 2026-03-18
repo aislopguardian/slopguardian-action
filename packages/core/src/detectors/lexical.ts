@@ -1,4 +1,4 @@
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import type { Signal } from "../types/detection.js";
 import type { PatternFile } from "../types/pattern.js";
 import type { Detector, DetectorError, DetectorInput } from "./base.js";

@@ -1,5 +1,5 @@
 import type { Signal, Verdict } from "../types/detection.js";
-import { DEFAULT_THRESHOLDS, type VerdictThresholds, scoreToVerdict } from "./thresholds.js";
+import { DEFAULT_THRESHOLDS, scoreToVerdict, type VerdictThresholds } from "./thresholds.js";
 import type { ScoringWeights } from "./weights.js";
 import { DEFAULT_WEIGHTS } from "./weights.js";
 

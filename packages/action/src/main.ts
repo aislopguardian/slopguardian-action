@@ -1,12 +1,13 @@
 import { resolve } from "node:path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { DEFAULT_CONFIG, Scanner, loadConfig, scoreToVerdict } from "@slopguardian/core";
 import type { Signal, SlopGuardianConfig, Verdict } from "@slopguardian/core";
+import { DEFAULT_CONFIG, loadConfig, Scanner, scoreToVerdict } from "@slopguardian/core";
 import { emitAnnotations } from "./annotations.js";
 import { buildReviewComment } from "./comment-builder.js";
 import { evaluateContributor } from "./contributor.js";
 import { parseDiff } from "./diff-parser.js";
+import type { GitHubClient } from "./github.js";
 import {
   addLabel,
   closeIssue,
@@ -19,7 +20,6 @@ import {
   isCollaborator,
   upsertComment,
 } from "./github.js";
-import type { GitHubClient } from "./github.js";
 import { extractStackTraceRefs, verifyStackTraces } from "./hallucination.js";
 import { detectHoneypot } from "./honeypot.js";
 import { type ActionInputs, parseActionInputs } from "./inputs.js";
