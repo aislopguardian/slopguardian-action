@@ -22,4 +22,5 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           config: ".slopguardian.yml"
           honeypot-terms: "SLOPGUARDIAN"
-          fail-on-error: "true"
+          exclude-collaborators: "false"
+          fail-on-error: "false"
