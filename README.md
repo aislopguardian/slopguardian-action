@@ -93,6 +93,16 @@ block-beta
     style slop fill:#ef4444,color:#fff
 ```
 
+### Demo PRs
+
+Three test PRs show how SlopGuardian responds at each scoring level. They stay open for reference:
+
+| PR | Verdict | What triggers it |
+|---|---|---|
+| [#2 — Clean](https://github.com/aislopguardian/slopguardian-action/pull/2) | Clean (0-5) | Direct technical writing, specific commit message, no patterns fired |
+| [#3 — Suspicious](https://github.com/aislopguardian/slopguardian-action/pull/3) | Suspicious (6-11) | Some filler phrases, hedging, generic commit message |
+| [#1 — Likely Slop](https://github.com/aislopguardian/slopguardian-action/pull/1) | Likely Slop (12+) | AI identity leak, buzzword soup, filler phrases, honeypot triggered, restating comments, generic names |
+
 ---
 
 ## Quick Start
