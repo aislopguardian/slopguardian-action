@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Pattern Contribution
+    url: https://github.com/aislopguardian/slopguardian-action/blob/main/CONTRIBUTING.md#adding-detection-patterns
+    about: Want to add a new detection pattern? Read the contribution guide first.
