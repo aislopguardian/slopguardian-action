@@ -1,0 +1,93 @@
+id: buzzword-soup
+name: Buzzword Soup
+category: lexical
+severity: warning
+language: en
+score-base: 2
+patterns:
+  - pattern: "\\brobust and scalable\\b"
+    flags: "i"
+    context: prose
+    score: 3
+    description: "Empty adjective pair — say what it handles"
+  - pattern: "\\bcomprehensive (solution|approach|framework|guide)\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Vague claim of completeness"
+  - pattern: "\\bseamless(ly)? integrat(e|ion|es|ing)\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Nothing integrates seamlessly"
+  - pattern: "\\bcutting[- ]edge\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Marketing speak"
+  - pattern: "\\bstate[- ]of[- ]the[- ]art\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Marketing speak"
+  - pattern: "\\bleverag(e|ing) the power( of)?\\b"
+    flags: "i"
+    context: prose
+    score: 3
+    description: "Just say 'uses'"
+  - pattern: "\\bin today'?s rapidly evolving\\b"
+    flags: "i"
+    context: prose
+    score: 3
+    description: "AI essay opener — delete the sentence"
+  - pattern: "\\bempower(s|ing)? (developers|teams|users)\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Marketing speak — say what it lets people do"
+  - pattern: "\\bstreamline(s|d)? the process\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Say how many steps it removes"
+  - pattern: "\\bde(lve|ep dive|ep-dive)(s|d|ing)? (in|into)\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "AI-favorite verb — use 'examine' or 'check'"
+  - pattern: "\\bholistic approach\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Vague methodology claim"
+  - pattern: "\\bparadigm shift\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Overused business jargon"
+  - pattern: "\\bgame[- ]changer\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Hyperbolic claim"
+  - pattern: "\\bbest[- ]in[- ]class\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Unsubstantiated superlative"
+tests:
+  should-match:
+    - "This tool provides a comprehensive solution for code review."
+    - "Leveraging the power of AI to detect slop."
+    - "In today's rapidly evolving landscape of software development..."
+    - "Our cutting-edge technology empowers developers to streamline the process."
+    - "Let's delve into the architecture of this system."
+    - "This represents a paradigm shift in code quality."
+    - "A robust and scalable approach to detection."
+  should-not-match:
+    - "This tool checks PRs for 31 known AI patterns."
+    - "Uses GPT-4 for optional secondary analysis."
+    - "The detection engine runs in under 200ms."
+    - "Covers TypeScript, JavaScript, Python, and Go."
+    - "Let's look at the architecture."
+    - "This changes how we detect AI text."

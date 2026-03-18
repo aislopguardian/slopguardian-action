@@ -1,0 +1,33 @@
+id: self-praise
+name: Self-Praise in Descriptions
+category: lexical
+severity: info
+language: en
+score-base: 1
+patterns:
+  - pattern: "\\b(elegant|clean|beautiful|well[- ]structured|carefully crafted|well[- ]designed) (solution|implementation|approach|code|architecture)\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Let reviewers decide if it's elegant"
+  - pattern: "\\b(properly|correctly|thoroughly) (implement|handle|address|solve)(s|ed|ing)?\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Defensive phrasing — the tests prove correctness, not adjectives"
+  - pattern: "\\bfollows? best practices\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Which practices? Name them or drop the claim"
+tests:
+  should-match:
+    - "This PR provides an elegant solution to the parsing problem."
+    - "A clean implementation of the scoring algorithm."
+    - "Carefully crafted code that follows best practices."
+    - "Properly handles all edge cases."
+  should-not-match:
+    - "Handles the case where config is missing by falling back to defaults."
+    - "Splits the monolith into 3 focused modules."
+    - "Adds retry with exponential backoff on 429 responses."
+    - "Follows the conventional commits spec for messages."
