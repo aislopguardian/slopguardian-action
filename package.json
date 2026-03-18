@@ -14,7 +14,7 @@
     "quality": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.4.8",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   }
