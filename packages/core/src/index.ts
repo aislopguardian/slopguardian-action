@@ -1,0 +1,16 @@
+export { Scanner } from "./engine/scanner.js";
+export type { FileInput, ScannerError } from "./engine/scanner.js";
+export { formatReport, formatMarkdown, formatJson, formatSarif } from "./engine/reporter.js";
+export { scoreSignals } from "./scoring/scorer.js";
+export { scoreToVerdict } from "./scoring/thresholds.js";
+export { PatternRegistry } from "./patterns/registry.js";
+export { loadConfig } from "./config/loader.js";
+export { LexicalDetector } from "./detectors/lexical.js";
+export { StructuralDetector } from "./detectors/structural.js";
+export { SemanticDetector } from "./detectors/semantic.js";
+export { CodeSmellDetector } from "./detectors/code-smell.js";
+export type { Detector, DetectorInput, DetectorError } from "./detectors/base.js";
+export type { Signal, ScanResult, Verdict, Severity, DetectorCategory } from "./types/detection.js";
+export type { SlopGuardianConfig } from "./types/config.js";
+export type { PatternFile, PatternEntry } from "./types/pattern.js";
+export type { ReportFormat, FormatOptions } from "./types/report.js";

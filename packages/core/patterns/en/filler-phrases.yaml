@@ -1,0 +1,62 @@
+id: filler-phrases
+name: Filler Phrases
+category: lexical
+severity: warning
+language: en
+score-base: 2
+patterns:
+  - pattern: "\\b[Ii]t'?s important to note( that)?\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Classic AI filler — adds nothing"
+  - pattern: "\\b[Ii]t'?s worth mentioning( that)?\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Throat-clearing before actual content"
+  - pattern: "\\b[Ii]t should be noted( that)?\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Passive filler phrase"
+  - pattern: "\\b[Pp]lease note that\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Unnecessary politeness filler"
+  - pattern: "\\b[Kk]eep in mind that\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Patronizing filler"
+  - pattern: "\\b[Aa]s previously mentioned\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Back-reference filler"
+  - pattern: "\\b[Mm]oving forward\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Temporal filler — just say what happens next"
+  - pattern: "\\b[Aa]t the end of the day\\b"
+    flags: "i"
+    context: prose
+    score: 2
+    description: "Cliche filler phrase"
+tests:
+  should-match:
+    - "It's important to note that this function is deprecated."
+    - "It's worth mentioning that the API changed."
+    - "Please note that this requires Node 20."
+    - "Moving forward, we plan to add more detectors."
+    - "At the end of the day, code quality matters."
+    - "As previously mentioned, the config schema changed."
+  should-not-match:
+    - "Check the release notes for deprecation info."
+    - "The API changed in v3."
+    - "Requires Node 20."
+    - "Next: add more detectors."
+    - "Keep your dependencies updated."
+    - "We covered the schema in the architecture doc."
