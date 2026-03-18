@@ -10,7 +10,7 @@ patterns:
     context: prose
     score: 0
     max: 1
-    description: "Hedging word — counted for density check"
+    description: "Uncertainty modal — contributes to per-paragraph hedge count"
   - pattern: "\\bcould potentially\\b"
     flags: "i"
     context: prose
@@ -21,7 +21,7 @@ patterns:
     context: prose
     score: 0
     max: 1
-    description: "Hedging word — counted for density check"
+    description: "Formal hedge — often signals AI-written qualifications"
   - pattern: "\\bgenerally speaking\\b"
     flags: "i"
     context: prose
@@ -37,7 +37,7 @@ patterns:
     context: prose
     score: 0
     max: 1
-    description: "Hedging word — counted for density check"
+    description: "Frequency adverb used as hedge — 'X happens' beats 'X typically happens'"
   - pattern: "\\bto some extent\\b"
     flags: "i"
     context: prose
