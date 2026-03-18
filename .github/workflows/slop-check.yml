@@ -1,0 +1,25 @@
+name: SlopGuardian Self-Check
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  slop-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          config: ".slopguardian.yml"
+          honeypot-terms: "SLOPGUARDIAN"
+          fail-on-error: "true"

@@ -1,0 +1,45 @@
+id: generic-commit
+name: Generic Commit Messages
+category: lexical
+severity: warning
+language: en
+score-base: 2
+patterns:
+  - pattern: "^(update|fix|improve|refactor|clean ?up|misc|changes|tweaks|stuff|wip)$"
+    flags: "i"
+    context: any
+    score: 3
+    description: "Single-word commit — says nothing about what changed"
+  - pattern: "^fix(ed|es|ing)? (bug|issue|problem|error|typo)s?$"
+    flags: "i"
+    context: any
+    score: 2
+    description: "Which bug? In what file? What was the symptom?"
+  - pattern: "^(update|improve|enhance|optimize)(d|s)? (code|files|stuff|things|project)$"
+    flags: "i"
+    context: any
+    score: 3
+    description: "No specifics about what changed or why"
+  - pattern: "^(various|minor|small|some) (changes|updates|fixes|improvements)$"
+    flags: "i"
+    context: any
+    score: 3
+    description: "Batch commit with no detail — split or describe"
+  - pattern: "^(initial|first) commit$"
+    flags: "i"
+    context: any
+    score: 1
+    description: "Acceptable for repos, but prefer describing what's in the commit"
+tests:
+  should-match:
+    - "update"
+    - "fix bug"
+    - "improved code"
+    - "various fixes"
+    - "refactor"
+    - "minor changes"
+  should-not-match:
+    - "fix(core): skip version field in package.json dependency scan"
+    - "feat(action): add honeypot detection for PR templates"
+    - "test(core): add false-positive corpus for filler-phrase detector"
+    - "Updated the lexical detector to handle multiline patterns"

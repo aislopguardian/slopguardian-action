@@ -1,0 +1,61 @@
+id: hedging-excess
+name: Hedging Excess
+category: lexical
+severity: info
+language: en
+score-base: 2
+patterns:
+  - pattern: "\\bmight\\b"
+    flags: "i"
+    context: prose
+    score: 0
+    max: 1
+    description: "Hedging word — counted for density check"
+  - pattern: "\\bcould potentially\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Double hedge — 'could' already implies uncertainty"
+  - pattern: "\\bperhaps\\b"
+    flags: "i"
+    context: prose
+    score: 0
+    max: 1
+    description: "Hedging word — counted for density check"
+  - pattern: "\\bgenerally speaking\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Weasel phrase"
+  - pattern: "\\bin most cases\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Vague qualifier — say which cases"
+  - pattern: "\\btypically\\b"
+    flags: "i"
+    context: prose
+    score: 0
+    max: 1
+    description: "Hedging word — counted for density check"
+  - pattern: "\\bto some extent\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Non-committal qualifier"
+  - pattern: "\\bit'?s possible that\\b"
+    flags: "i"
+    context: prose
+    score: 1
+    description: "Weak assertion — either it is or it isn't"
+tests:
+  should-match:
+    - "This could potentially cause issues in most cases."
+    - "Generally speaking, the detection might work."
+    - "It's possible that this is to some extent related."
+    - "Typically, perhaps the configuration might need updating."
+  should-not-match:
+    - "This causes failures when the config is missing."
+    - "Detection runs in 150ms on a 1000-line file."
+    - "The parser rejects malformed YAML."
+    - "Set threshold to 12 for strict enforcement."

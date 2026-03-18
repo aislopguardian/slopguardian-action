@@ -1,0 +1,56 @@
+id: code-comment-slop
+name: Code Comment Slop
+category: lexical
+severity: warning
+language: en
+score-base: 2
+patterns:
+  - pattern: "^\\s*\\/\\/ (This )?(function|method|class) (does|will|is|that|handles|performs)"
+    flags: "m"
+    context: code
+    score: 2
+    description: "Comment restating the function — let the name speak"
+  - pattern: "^\\s*\\/\\/ (Import|Require) (the |)(dependencies|modules|packages|libraries)"
+    flags: "mi"
+    context: code
+    score: 2
+    description: "Comment above imports — the imports are visible"
+  - pattern: "^\\s*\\/\\/ (Define|Declare) (the |)(types|interfaces|constants|variables)"
+    flags: "mi"
+    context: code
+    score: 2
+    description: "Section header comment — code structure is self-evident"
+  - pattern: "^\\s*\\/\\/ (Handle|Catch) (the |)(error|exception)"
+    flags: "mi"
+    context: code
+    score: 2
+    description: "Comment on catch block — the catch keyword says it"
+  - pattern: "^\\s*\\/\\/ (Initialize|Set up|Setup) (the |)(variables|state|config)"
+    flags: "mi"
+    context: code
+    score: 2
+    description: "Comment above assignments — the assignments are visible"
+  - pattern: "^\\s*\\/\\/ (Return|Returns) (the |)(result|value|output|response|data)"
+    flags: "mi"
+    context: code
+    score: 2
+    description: "Comment above return — the return statement says it"
+  - pattern: "^\\s*\\/\\*\\*\\s*\\n\\s*\\*\\s*(Gets?|Sets?|Creates?|Deletes?|Updates?|Finds?) (the |a |an )?"
+    flags: "m"
+    context: code
+    score: 1
+    description: "JSDoc that restates the function name"
+    max: 4
+tests:
+  should-match:
+    - "// This function handles the user authentication"
+    - "// Import dependencies"
+    - "// Define types"
+    - "// Handle the error"
+    - "// Initialize variables"
+    - "// Returns the result"
+  should-not-match:
+    - "// Sorted desc so worst signals appear first in PR comments"
+    - "// fs.watch fires twice per save on Windows — debounce 100ms"
+    - "// OpenRouter returns 429 after 60 req/min on free tier"
+    - "import { readFileSync } from 'fs';"
