@@ -127,6 +127,23 @@ One file. Runs on every PR and issue, posts a comment when it finds problems.
 
 ## What It Catches
 
+### Detection Pipeline
+
+```mermaid
+flowchart LR
+    IN["Input"] --> LEX["Lexical\n40+ regex"] --> STR["Structural\ntrigram match"] --> SEM["Semantic\nfiller + hedging"] --> CS["Code Smell\ncomments, names"] --> SC["Scorer"] --> OUT["Verdict"]
+
+    YAML["9 YAML pattern files"] -.-> LEX
+
+    style LEX fill:#3b82f6,color:#fff
+    style STR fill:#8b5cf6,color:#fff
+    style SEM fill:#ec4899,color:#fff
+    style CS fill:#f97316,color:#fff
+    style SC fill:#14b8a6,color:#fff
+    style OUT fill:#22c55e,color:#fff
+    style YAML fill:#1e293b,color:#94a3b8
+```
+
 ### PR Signals
 
 | Signal | Detection Method | Score |
@@ -369,23 +386,6 @@ slopguardian-action/
   packages/
     core/       detection engine, 9 YAML pattern files, scoring, 3 output formats
     action/     GitHub Action + honeypot, hallucination, contributor checks
-```
-
-### Detection Pipeline
-
-```mermaid
-flowchart LR
-    IN["Input"] --> LEX["Lexical\n40+ regex"] --> STR["Structural\ntrigram match"] --> SEM["Semantic\nfiller + hedging"] --> CS["Code Smell\ncomments, names"] --> SC["Scorer"] --> OUT["Verdict"]
-
-    YAML["9 YAML pattern files"] -.-> LEX
-
-    style LEX fill:#3b82f6,color:#fff
-    style STR fill:#8b5cf6,color:#fff
-    style SEM fill:#ec4899,color:#fff
-    style CS fill:#f97316,color:#fff
-    style SC fill:#14b8a6,color:#fff
-    style OUT fill:#22c55e,color:#fff
-    style YAML fill:#1e293b,color:#94a3b8
 ```
 
 ### Adding Detection Patterns
