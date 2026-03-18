@@ -12,7 +12,7 @@
     "package": "ncc build dist/main.js -o dist-action"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^3.0.0",
     "@actions/github": "^6.0.0",
     "@slopguardian/core": "workspace:*",
     "neverthrow": "^8.1.1",
