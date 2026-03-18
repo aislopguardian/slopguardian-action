@@ -25,8 +25,6 @@ const ActionInputsSchema = z.object({
   gracePeriodHours: z.number().default(0),
   onWarn: z.array(z.string()).default(["label", "comment"]),
   onClose: z.array(z.string()).default(["label", "comment", "close"]),
-  maxNegativeReactions: z.number().default(3),
-  checkLanguageMismatch: z.boolean().default(true),
 });
 
 export type ActionInputs = z.infer<typeof ActionInputsSchema>;
@@ -65,8 +63,6 @@ export function parseActionInputs(): ActionInputs {
     gracePeriodHours: Number(core.getInput("grace-period-hours") || "0"),
     onWarn: splitCsv(core.getInput("on-warn") || "label,comment"),
     onClose: splitCsv(core.getInput("on-close") || "label,comment,close"),
-    maxNegativeReactions: Number(core.getInput("max-negative-reactions") || "3"),
-    checkLanguageMismatch: core.getBooleanInput("check-language-mismatch"),
   };
 
   return ActionInputsSchema.parse(raw);

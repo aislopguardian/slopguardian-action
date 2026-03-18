@@ -1,5 +1,5 @@
 name: "SlopGuardian"
-description: "Catches AI-generated slop in PRs and issues. 31 checks, no AI required."
+description: "Catches AI-generated slop in PRs and issues. 55+ detection rules, no AI required."
 author: "slopguardian"
 
 branding:
@@ -86,14 +86,6 @@ inputs:
     description: "Actions on likely-slop verdict (comma-separated: label, comment, close)"
     required: false
     default: "label,comment,close"
-  max-negative-reactions:
-    description: "Negative reaction count that triggers community signal"
-    required: false
-    default: "3"
-  check-language-mismatch:
-    description: "Detect foreign language file additions"
-    required: false
-    default: "true"
 
 outputs:
   verdict:

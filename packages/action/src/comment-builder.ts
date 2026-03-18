@@ -26,7 +26,7 @@ export function buildReviewComment(data: CommentData): string {
   const sections: string[] = [];
 
   sections.push(
-    `## \uD83D\uDEE1\uFE0F SlopGuardian \u2014 **${score}** \u00B7 ${VERDICT_EMOJI[verdict]} ${verdict}\n`,
+    `${VERDICT_EMOJI[verdict]} **SlopGuardian** \u00B7 **${score}** \u00B7 ${verdict}\n`,
   );
 
   if (signals.length > 0) {

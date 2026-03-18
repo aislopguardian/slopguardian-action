@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Catches AI-generated slop in your GitHub PRs and issues.</strong><br>
-  Multiple detectors, 9 pattern files, zero AI required. Set up in 30 seconds.
+  55+ detection rules across 9 pattern files, zero AI required. Set up in 30 seconds.
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@ flowchart TD
     B -->|"exempt / collaborator"| Y["Skip\nanalysis"]
     B -->|"analyze"| C["Core Scanner"]
 
-    C --> D["Lexical Detector\n9 YAML files, 40+ patterns"]
+    C --> D["Lexical Detector\n9 YAML files, 55+ patterns"]
     C --> E["Structural Detector\nDuplicate block detection"]
     C --> F["Semantic Detector\nFiller ratio, hedging density"]
     C --> G["Code Smell Detector\nComment ratio, generic names"]
@@ -141,7 +141,7 @@ One file. Runs on every PR and issue, posts a comment when it finds problems.
 
 ```mermaid
 flowchart LR
-    IN["Input"] --> LEX["Lexical\n40+ regex"] --> STR["Structural\ntrigram match"] --> SEM["Semantic\nfiller + hedging"] --> CS["Code Smell\ncomments, names"] --> SC["Scorer"] --> OUT["Verdict"]
+    IN["Input"] --> LEX["Lexical\n55+ regex"] --> STR["Structural\ntrigram match"] --> SEM["Semantic\nfiller + hedging"] --> CS["Code Smell\ncomments, names"] --> SC["Scorer"] --> OUT["Verdict"]
 
     YAML["9 YAML pattern files"] -.-> LEX
 
@@ -174,20 +174,6 @@ flowchart LR
 | High filler density | >30% filler words in a paragraph | **2-5** |
 | Hedging overload | `"might potentially"`, stacked qualifiers | **1-5** |
 
-#### Planned Signals
-
-These inputs are accepted for forward compatibility but not yet enforced:
-
-| Signal | Detection Method | Score |
-|---|---|:---:|
-| Cosmetic-only diffs | Changed lines identical after trimming whitespace | **3** |
-| Massive unfocused dumps | >500 added lines across >10 files | **4** |
-| Dead code injection | Functions added but never called | **3** |
-| Missing motivation | PR explains what but never says why | **2** |
-| Features without tests | New code files, zero test files | **2** |
-| Language mismatch | >50% of added files in unexpected language | **3** |
-| Community reactions | Excess thumbs-down or confused reactions | **3** |
-
 ### Issue Signals
 
 | Signal | Detection Method | Score |
@@ -196,13 +182,7 @@ These inputs are accepted for forward compatibility but not yet enforced:
 | Hallucinated functions | Function name not found in referenced file | **5** |
 | Hallucinated line numbers | Line number exceeds file length | **4** |
 
-#### Planned Issue Signals
-
-| Signal | Detection Method | Score |
-|---|---|:---:|
-| Missing repro steps | No "steps to reproduce" section | **3** |
-| Non-existent versions | Referenced version not in releases | **4** |
-| Duplicate issues | >85% similarity to an open issue | **3** |
+See [ROADMAP.md](ROADMAP.md) for planned signals.
 
 ---
 
@@ -221,7 +201,7 @@ Non-accusatory tone. Never says "AI-generated." Says "this pattern is commonly a
 ### Example Output
 
 ```markdown
-## SlopGuardian — 8 · suspicious
+⚠️ **SlopGuardian** · **8** · suspicious
 
 <details open>
 <summary>3 signals found</summary>
@@ -350,37 +330,6 @@ exclude:
 
 ---
 
-## Grace Period (planned)
-
-> **Note:** The `grace-period-hours` input is accepted for forward compatibility but the grace period logic is not yet enforced. PRs that exceed the fail threshold are closed immediately.
-
-Delay auto-close to give the author time to fix:
-
-```yaml
-- uses: aislopguardian/slopguardian-action@v0
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    grace-period-hours: "24"
-```
-
-Add a scheduled workflow to close after the grace period:
-
-```yaml
-name: SlopGuardian Cleanup
-on:
-  schedule:
-    - cron: '0 */6 * * *'
-jobs:
-  cleanup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aislopguardian/slopguardian-action@v0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
----
-
 ## User Tiers
 
 | Tier | Score Multiplier | Behavior |
@@ -409,7 +358,7 @@ git clone https://github.com/aislopguardian/slopguardian-action.git
 cd slopguardian-action
 pnpm install
 pnpm build
-pnpm test        # 76 tests
+pnpm test        # 134 tests
 pnpm lint        # biome
 pnpm typecheck   # strict, zero any
 ```
