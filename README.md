@@ -431,12 +431,7 @@ pnpm --filter @slopguardian/core test
 
 ## Contributing
 
-PRs welcome. Before submitting:
-
-1. `pnpm quality` must pass (lint + typecheck + test)
-2. New patterns need 3+ should-match and 3+ should-not-match cases
-3. Commit messages follow `type(scope): description` — see git log for examples
-4. PR body explains what changed and why
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code style, and PR guidelines. The fastest way to contribute: add new detection patterns in `packages/core/patterns/`.
 
 ---
 
