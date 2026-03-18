@@ -1,0 +1,39 @@
+id: false-confidence
+name: False Confidence
+category: lexical
+severity: info
+language: en
+score-base: 1
+patterns:
+  - pattern: "^(Great|Excellent|Wonderful|Fantastic) (question|point|idea|observation)!?"
+    flags: "im"
+    context: prose
+    score: 2
+    description: "Validating opener — skips straight to flattery"
+  - pattern: "^Absolutely!"
+    flags: "m"
+    context: prose
+    score: 1
+    description: "Over-enthusiastic agreement"
+  - pattern: "^Certainly!"
+    flags: "m"
+    context: prose
+    score: 1
+    description: "Formulaic agreement"
+  - pattern: "!{3,}"
+    flags: ""
+    context: any
+    score: 2
+    description: "Excessive exclamation marks (3+)"
+    max: 4
+tests:
+  should-match:
+    - "Great question! Let me explain how it works."
+    - "Excellent point! That's exactly right."
+    - "Absolutely! We should implement that."
+    - "This is amazing!!! So exciting!!!"
+  should-not-match:
+    - "The question about performance is addressed in the FAQ."
+    - "I agree. We should implement that."
+    - "Yes, that's correct."
+    - "This feature shipped in v2.1."

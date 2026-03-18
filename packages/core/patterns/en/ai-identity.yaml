@@ -1,0 +1,43 @@
+id: ai-identity
+name: AI Identity Leaks
+category: lexical
+severity: error
+language: en
+score-base: 5
+patterns:
+  - pattern: "\\b[Aa]s an? AI( language)? model\\b"
+    flags: "i"
+    context: any
+    score: 5
+    description: "AI self-identification"
+  - pattern: "\\bI'?m a(n AI| language model)\\b"
+    flags: "i"
+    context: any
+    score: 5
+    description: "First-person AI identification"
+  - pattern: "\\b[Aa]s a large language model\\b"
+    flags: "i"
+    context: any
+    score: 5
+    description: "LLM self-reference"
+  - pattern: "\\bmy training data\\b"
+    flags: "i"
+    context: prose
+    score: 4
+    description: "Training data reference in non-technical context"
+  - pattern: "\\bmy knowledge cutoff\\b"
+    flags: "i"
+    context: prose
+    score: 4
+    description: "Knowledge cutoff reference"
+tests:
+  should-match:
+    - "As an AI language model, I cannot help with that."
+    - "I'm a language model and I don't have opinions."
+    - "As a large language model, my training data only goes to 2024."
+    - "Based on my knowledge cutoff, I can't verify this."
+  should-not-match:
+    - "The AI model was trained on public data."
+    - "We built a language model for classification."
+    - "The training data pipeline processes 50GB daily."
+    - "Set the knowledge cutoff date in config."
