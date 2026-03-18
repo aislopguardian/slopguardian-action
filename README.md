@@ -99,9 +99,9 @@ Three demo PRs show SlopGuardian at each score level. Open for reference:
 
 | PR | Expected Verdict | Triggers |
 |---|---|---|
-| [#4 — Clean](https://github.com/aislopguardian/slopguardian-action/pull/4) | Clean (0-5) | No patterns fired |
-| [#6 — Suspicious](https://github.com/aislopguardian/slopguardian-action/pull/6) | Suspicious (6-11) | Filler phrases, hedging, generic commit |
-| [#5 — Likely Slop](https://github.com/aislopguardian/slopguardian-action/pull/5) | Likely Slop (12+) | AI identity, buzzwords, filler, honeypot, restating comments, generic names |
+| [#11 — Clean](https://github.com/aislopguardian/slopguardian-action/pull/11) | Clean (0-5) | No patterns fired |
+| [#12 — Suspicious](https://github.com/aislopguardian/slopguardian-action/pull/12) | Suspicious (6-11) | Filler phrases, hedging, generic commit |
+| [#13 — Likely Slop](https://github.com/aislopguardian/slopguardian-action/pull/13) | Likely Slop (12+) | AI identity, buzzwords, filler, honeypot, restating comments, generic names |
 
 ---
 
