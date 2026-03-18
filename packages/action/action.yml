@@ -7,6 +7,9 @@ branding:
   color: "red"
 
 inputs:
+  github-token:
+    description: "GitHub token for API calls and posting comments"
+    required: true
   config:
     description: "Path to .slopguardian.yml config file"
     required: false
@@ -104,4 +107,4 @@ outputs:
 
 runs:
   using: "node20"
-  main: "dist/main.js"
+  main: "dist-action/index.js"
