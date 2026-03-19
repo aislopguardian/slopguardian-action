@@ -40,7 +40,8 @@ export const SlopGuardianConfigSchema = z.object({
   thresholds: z
     .object({
       warn: z.number().default(6),
-      fail: z.number().default(12),
+      review: z.number().default(10),
+      fail: z.number().default(15),
     })
     .default({}),
   detectors: z

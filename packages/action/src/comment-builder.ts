@@ -8,10 +8,11 @@ const SEVERITY_ICON: Record<string, string> = {
   info: "\u2139\uFE0F",
 };
 
-const VERDICT_EMOJI: Record<Verdict, string> = {
-  clean: "\u2705",
-  suspicious: "\u26A0\uFE0F",
-  "likely-slop": "\u274C",
+const VERDICT_HEADER: Record<Verdict, string> = {
+  clean: "\u2705 **slopguardian**",
+  suspicious: "\u26A0\uFE0F **slopguardian**",
+  "needs-review": "\uD83D\uDD0D **slopguardian**",
+  "likely-slop": "\u274C **slopguardian**",
 };
 
 export interface CommentData {
@@ -23,43 +24,67 @@ export interface CommentData {
 
 export function buildReviewComment(data: CommentData): string {
   const { verdict, score, signals, exemptLabels } = data;
-  const sections: string[] = [];
 
-  sections.push(
-    `${VERDICT_EMOJI[verdict]} **SlopGuardian** \u00B7 **${score}** \u00B7 ${verdict}\n`,
-  );
+  if (verdict === "clean" && signals.length === 0) {
+    return `${VERDICT_HEADER.clean} \u00B7 score: **${score}** \u00B7 clean\n\n${COMMENT_MARKER}`;
+  }
+
+  const sections: string[] = [];
+  sections.push(`## ${VERDICT_HEADER[verdict]} \u00B7 score: ${score} \u00B7 ${verdict}\n`);
 
   if (signals.length > 0) {
-    sections.push(buildSignalSection(signals));
+    sections.push(buildSignalTable(signals));
     sections.push(buildFixSection(signals));
     sections.push(buildScoreBreakdown(signals, score));
   }
 
-  if (exemptLabels.length > 0) {
+  if (verdict === "needs-review") {
     sections.push(
-      `> Add the ${exemptLabels.map((l) => `\`${l}\``).join(" or ")} label to dismiss this review.`,
+      "> This PR needs manual review. It has not been auto-closed.\n",
     );
+  }
+
+  if (verdict === "likely-slop") {
+    sections.push(
+      "> This PR has been closed. If this is a mistake, a maintainer can reopen and add `human-verified`.\n",
+    );
+  }
+
+  if (exemptLabels.length > 0) {
+    const labels = exemptLabels.map((l) => `\`${l}\``).join(" or ");
+    sections.push(`> ${labels} label dismisses this review \u00B7 [Docs](https://github.com/aislopguardian/slopguardian-action/wiki)`);
   }
 
   sections.push(COMMENT_MARKER);
   return sections.join("\n");
 }
 
-function buildSignalSection(signals: Signal[]): string {
+function buildSignalTable(signals: Signal[]): string {
   const sorted = [...signals].sort((a, b) => b.score - a.score);
-  const rows = sorted.map((s) => {
+  const visible = sorted.slice(0, 10);
+  const overflow = sorted.length - visible.length;
+
+  const rows = visible.map((s) => {
     const icon = SEVERITY_ICON[s.severity] ?? "?";
     const location = s.file ? `\`${s.file}${s.line ? `:${s.line}` : ""}\`` : "\u2014";
     return `| ${icon} | ${s.detectorId} | ${location} | ${s.message} | ${s.score} |`;
   });
 
   const table = [
-    "| | Signal | Location | Detail | Score |",
+    "| | Check | Where | Detail | Pts |",
     "|---|---|---|---|---:|",
     ...rows,
   ].join("\n");
 
-  return `<details open>\n<summary>${signals.length} signal${signals.length === 1 ? "" : "s"} found</summary>\n\n${table}\n\n</details>\n`;
+  if (overflow <= 0) return `${table}\n`;
+
+  const hiddenRows = sorted.slice(10).map((s) => {
+    const icon = SEVERITY_ICON[s.severity] ?? "?";
+    const location = s.file ? `\`${s.file}${s.line ? `:${s.line}` : ""}\`` : "\u2014";
+    return `| ${icon} | ${s.detectorId} | ${location} | ${s.message} | ${s.score} |`;
+  });
+
+  return `${table}\n\n<details>\n<summary>${overflow} more signal${overflow === 1 ? "" : "s"}</summary>\n\n| | Check | Where | Detail | Pts |\n|---|---|---|---|---:|\n${hiddenRows.join("\n")}\n\n</details>\n`;
 }
 
 function buildFixSection(signals: Signal[]): string {
@@ -71,21 +96,21 @@ function buildFixSection(signals: Signal[]): string {
 
   if (suggestions.length === 0) return "";
 
-  return `<details>\n<summary>How to fix</summary>\n\n${suggestions.join("\n")}\n\n</details>\n`;
+  return `<details>\n<summary>How to fix (${suggestions.length} suggestion${suggestions.length === 1 ? "" : "s"})</summary>\n\n${suggestions.join("\n")}\n\n</details>\n`;
 }
 
 function buildScoreBreakdown(signals: Signal[], totalScore: number): string {
-  const grouped = new Map<string, number>();
+  const byCategory = new Map<string, number>();
   for (const s of signals) {
-    grouped.set(s.detectorId, (grouped.get(s.detectorId) ?? 0) + s.score);
+    byCategory.set(s.category, (byCategory.get(s.category) ?? 0) + s.score);
   }
 
-  const parts = Array.from(grouped.entries())
+  const parts = Array.from(byCategory.entries())
     .sort((a, b) => b[1] - a[1])
-    .map(([id, score]) => `${id}(${score})`)
-    .join(" + ");
+    .map(([cat, score]) => `${cat}: ${score}`)
+    .join(" \u00B7 ");
 
-  return `> Score breakdown: ${parts} = ${totalScore}\n`;
+  return `<details>\n<summary>Score breakdown</summary>\n\n${parts} \u00B7 total: **${totalScore}**\n\n</details>\n`;
 }
 
 export function isOwnComment(commentBody: string): boolean {

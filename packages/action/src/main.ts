@@ -24,6 +24,14 @@ import { extractStackTraceRefs, verifyStackTraces } from "./hallucination.js";
 import { detectHoneypot } from "./honeypot.js";
 import { type ActionInputs, parseActionInputs } from "./inputs.js";
 import { setActionOutputs } from "./outputs.js";
+import {
+  checkAddedCommentDensity,
+  checkDescriptionQuality,
+  checkMetadataOnlyPr,
+  checkSpamUsername,
+  checkTemplateCompliance,
+  checkTitleQuality,
+} from "./pr-checks.js";
 
 async function run(): Promise<void> {
   try {
@@ -69,7 +77,7 @@ async function run(): Promise<void> {
     const allSignals: Signal[] = [...contributorVerdict.signals];
 
     if (context.payload.pull_request) {
-      const prSignals = await analyzePr(client, issueNumber, config, inputs);
+      const prSignals = await analyzePr(client, issueNumber, config, inputs, username);
       allSignals.push(...prSignals);
     }
 
@@ -79,10 +87,11 @@ async function run(): Promise<void> {
     }
 
     const warnThreshold = inputs.warnThreshold ?? config.thresholds.warn;
+    const reviewThreshold = inputs.reviewThreshold ?? config.thresholds.review;
     const failThreshold = inputs.failThreshold ?? config.thresholds.fail;
     let totalScore = allSignals.reduce((sum, s) => sum + s.score, 0);
     totalScore = Math.round(totalScore * contributorVerdict.scoreMultiplier);
-    const verdict = scoreToVerdict(totalScore, { warn: warnThreshold, fail: failThreshold });
+    const verdict = scoreToVerdict(totalScore, { warn: warnThreshold, review: reviewThreshold, fail: failThreshold });
 
     await applyVerdict(client, issueNumber, inputs, allSignals, totalScore, verdict);
   } catch (error) {
@@ -123,12 +132,12 @@ async function analyzePr(
   pullNumber: number,
   config: SlopGuardianConfig,
   inputs: ActionInputs,
+  username: string,
 ): Promise<Signal[]> {
   const signals: Signal[] = [];
   const diff = await getPrDiff(client, pullNumber);
   const fileChanges = parseDiff(diff);
 
-  // __dirname resolves relative to the action repo checkout, not the user's workspace
   const patternsDir = resolve(__dirname, "../../core/patterns");
   const scanner = new Scanner(config, patternsDir);
 
@@ -148,13 +157,33 @@ async function analyzePr(
   }
 
   const prBody = github.context.payload.pull_request?.body ?? "";
+  const prTitle = github.context.payload.pull_request?.title ?? "";
   signals.push(...detectHoneypot(prBody, { terms: inputs.honeypotTerms }));
+
+  if (inputs.checkMetadataPaths) {
+    signals.push(...checkMetadataOnlyPr(fileChanges));
+  }
+  if (inputs.checkTitleQuality) {
+    signals.push(...checkTitleQuality(prTitle));
+  }
+  if (inputs.checkDescriptionQuality) {
+    signals.push(...checkDescriptionQuality(prBody));
+  }
+  if (inputs.checkAddedComments) {
+    signals.push(...checkAddedCommentDensity(fileChanges));
+  }
+  if (inputs.checkSpamUsername) {
+    signals.push(...checkSpamUsername(username));
+  }
+  if (inputs.checkTemplateCompliance) {
+    signals.push(...checkTemplateCompliance(prBody));
+  }
 
   const headBranch = github.context.payload.pull_request?.head?.ref ?? "";
   if (inputs.blockedSourceBranches.includes(headBranch)) {
     signals.push({
       detectorId: "blocked-branch",
-      category: "consistency",
+      category: "action",
       severity: "error",
       score: 4,
       message: `PR opened from blocked branch: ${headBranch}`,
@@ -197,8 +226,13 @@ async function applyVerdict(
     exemptLabels: inputs.exemptLabels,
   });
 
-  const actions =
-    verdict === "likely-slop" ? inputs.onClose : verdict === "suspicious" ? inputs.onWarn : [];
+  const verdictActions: Record<Verdict, string[]> = {
+    "likely-slop": inputs.onClose,
+    "needs-review": inputs.onNeedsReview,
+    suspicious: inputs.onWarn,
+    clean: [],
+  };
+  const actions = verdictActions[verdict];
 
   if (actions.includes("comment")) {
     await upsertComment(client, issueNumber, commentBody);

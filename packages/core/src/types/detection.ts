@@ -1,6 +1,6 @@
 export type Severity = "error" | "warning" | "info";
 
-export type DetectorCategory = "lexical" | "structural" | "semantic" | "code-smell" | "consistency";
+export type DetectorCategory = "lexical" | "structural" | "semantic" | "code-smell" | "consistency" | "action";
 
 export interface Signal {
   detectorId: string;
@@ -29,4 +29,4 @@ export interface ScanResult {
   detectorTimings: Map<string, number>;
 }
 
-export type Verdict = "clean" | "suspicious" | "likely-slop";
+export type Verdict = "clean" | "suspicious" | "needs-review" | "likely-slop";

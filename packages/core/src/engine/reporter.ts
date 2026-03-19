@@ -13,7 +13,9 @@ export function formatMarkdown(scanResult: ScanResult): MarkdownReport {
       ? "[PASS]"
       : scanResult.verdict === "suspicious"
         ? "[WARN]"
-        : "[FAIL]";
+        : scanResult.verdict === "needs-review"
+          ? "[REVIEW]"
+          : "[FAIL]";
 
   const verdictLine = `${verdictLabel} **Verdict: ${scanResult.verdict}** (score: ${scanResult.totalScore})`;
 

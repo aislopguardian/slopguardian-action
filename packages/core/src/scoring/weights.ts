@@ -13,5 +13,6 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
     semantic: 0.8,
     "code-smell": 0.7,
     consistency: 0.6,
+    action: 1.0,
   },
 };

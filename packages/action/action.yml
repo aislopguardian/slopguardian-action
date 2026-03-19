@@ -1,5 +1,5 @@
 name: "SlopGuardian"
-description: "Catches AI-generated slop in PRs and issues. 55+ detection rules, no AI required."
+description: "Catches AI-generated slop in PRs and issues. 30+ checks, 4 verdict tiers, no AI required."
 author: "slopguardian"
 
 branding:
@@ -14,6 +14,10 @@ inputs:
     description: "Path to .slopguardian.yml config file"
     required: false
     default: ".slopguardian.yml"
+  profile:
+    description: "Preset config profile: strict, balanced, relaxed, monitor-only"
+    required: false
+    default: "balanced"
   fail-on-error:
     description: "Fail the check if score exceeds fail threshold"
     required: false
@@ -23,6 +27,9 @@ inputs:
     required: false
   warn-threshold:
     description: "Score at or above this triggers warning (overrides config)"
+    required: false
+  review-threshold:
+    description: "Score at or above this triggers needs-review (overrides config)"
     required: false
   ai-key:
     description: "API key for optional LLM analysis (OpenRouter or direct provider)"
@@ -78,8 +85,36 @@ inputs:
     description: "Hours before auto-close (0 = immediate)"
     required: false
     default: "0"
+  check-metadata-paths:
+    description: "Flag PRs that only modify metadata files (README, LICENSE, etc.)"
+    required: false
+    default: "true"
+  check-title-quality:
+    description: "Flag generic, overlong, or emoji-heavy PR titles"
+    required: false
+    default: "true"
+  check-description-quality:
+    description: "Flag empty, too-short, or excessively long PR descriptions"
+    required: false
+    default: "true"
+  check-added-comments:
+    description: "Flag high comment-to-code ratio in added lines"
+    required: false
+    default: "true"
+  check-spam-username:
+    description: "Flag usernames matching spam patterns (low-confidence signal)"
+    required: false
+    default: "true"
+  check-template-compliance:
+    description: "Flag uncompleted or bulk-checked PR template checkboxes"
+    required: false
+    default: "true"
   on-warn:
-    description: "Actions on warning verdict (comma-separated: label, comment)"
+    description: "Actions on suspicious verdict (comma-separated: label, comment)"
+    required: false
+    default: "label,comment"
+  on-needs-review:
+    description: "Actions on needs-review verdict (comma-separated: label, comment)"
     required: false
     default: "label,comment"
   on-close:
@@ -89,7 +124,7 @@ inputs:
 
 outputs:
   verdict:
-    description: "clean, suspicious, or likely-slop"
+    description: "clean, suspicious, needs-review, or likely-slop"
   score:
     description: "Total weighted score"
   signal-count:

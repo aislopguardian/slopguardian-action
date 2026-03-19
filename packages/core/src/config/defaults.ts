@@ -2,7 +2,7 @@ import type { SlopGuardianConfig } from "../types/config.js";
 
 export const DEFAULT_CONFIG: SlopGuardianConfig = {
   version: 1,
-  thresholds: { warn: 6, fail: 12 },
+  thresholds: { warn: 6, review: 10, fail: 15 },
   detectors: {
     lexical: { enabled: true, weight: 1, languages: ["en"] },
     structural: { enabled: true, weight: 1, "duplicate-threshold": 0.85 },

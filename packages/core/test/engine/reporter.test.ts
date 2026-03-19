@@ -46,6 +46,14 @@ describe("formatMarkdown", () => {
     expect(result.verdictLine).toContain("score: 8");
   });
 
+  it("returns [REVIEW] label for needs-review verdict", () => {
+    const result = formatMarkdown(makeScanResult({ verdict: "needs-review", totalScore: 12 }));
+
+    expect(result.verdictLine).toContain("[REVIEW]");
+    expect(result.verdictLine).toContain("needs-review");
+    expect(result.verdictLine).toContain("score: 12");
+  });
+
   it("returns [FAIL] label for likely-slop verdict", () => {
     const result = formatMarkdown(makeScanResult({ verdict: "likely-slop", totalScore: 15 }));
 

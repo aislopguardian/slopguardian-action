@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 (v3)
+
+### Added
+
+- **4th verdict tier: `needs-review`** (score 10-14). Labels and comments the PR without auto-closing it. Fills the gap between "suspicious" and "likely-slop" where maintainer attention is needed but closure is premature.
+- **11 new PR-level checks**: `metadata-only-pr`, `generic-title`, `title-length`, `title-emoji`, `empty-description`, `short-description`, `verbose-description`, `added-comment-density`, `spam-username`, `template-unchecked`, `template-all-checked`.
+- **`"action"` detector category** for PR-level structural signals (distinct from core content detectors).
+- **Profile presets** (`strict`, `balanced`, `relaxed`, `monitor-only`): one input sets sensible defaults, overridable per-input.
+- **6 granular check toggles**: `check-metadata-paths`, `check-title-quality`, `check-description-quality`, `check-added-comments`, `check-spam-username`, `check-template-compliance`.
+- **`on-needs-review` action input**: separate action set for the new tier (default: `label,comment`).
+- **`review-threshold` action input**: override the needs-review score boundary.
+- `pr-checks.ts` module with 6 pure check functions.
+- 25 new action tests (pr-checks, comment-builder v3, needs-review tier). Total: 161 tests.
+- `ROADMAP.md` with v3.1, v3.2, v4.0 plans.
+
+### Changed
+
+- **Scoring thresholds rebalanced**: warn=6 (unchanged), review=10 (new), fail=15 (was 12). Backward compatible: existing configs without `review` get the default.
+- **Comment format v3**: compact table with Check/Where/Detail/Pts columns. Signals beyond 10 collapse into expandable section. Score breakdown groups by category. Verdict-specific footer: `needs-review` says "needs manual review", `likely-slop` says "has been closed". Dismiss instruction with docs link.
+- `blocked-branch` signal uses `"action"` category instead of `"consistency"`.
+- `action.yml` description updated from "55+ detection rules" to "30+ checks, 4 verdict tiers".
+- README: added "What's New in v3" section, updated all signal tables, version references, example output, test count.
+
 ## 0.2.0
 
 ### Fixed

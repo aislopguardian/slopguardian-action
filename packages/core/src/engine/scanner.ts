@@ -97,6 +97,7 @@ export class Scanner {
 
       const thresholds = {
         warn: this.config.thresholds.warn,
+        review: this.config.thresholds.review,
         fail: this.config.thresholds.fail,
       };
 

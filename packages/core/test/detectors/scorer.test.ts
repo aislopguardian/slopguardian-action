@@ -41,7 +41,7 @@ describe("scoreSignals", () => {
     expect(result.verdict).toBe("clean");
   });
 
-  it("returns 'suspicious' for score 6-11", () => {
+  it("returns 'suspicious' for score 6-9", () => {
     const signals: Signal[] = [
       {
         detectorId: "lexical",
@@ -70,7 +70,7 @@ describe("scoreSignals", () => {
     expect(result.verdict).toBe("suspicious");
   });
 
-  it("returns 'likely-slop' for score >= 12", () => {
+  it("returns 'needs-review' for score 10-14", () => {
     const signals: Signal[] = [
       {
         detectorId: "lexical",
@@ -84,6 +84,35 @@ describe("scoreSignals", () => {
         category: "lexical",
         severity: "error",
         score: 5,
+        message: "buzzword",
+      },
+      {
+        detectorId: "semantic",
+        category: "semantic",
+        severity: "warning",
+        score: 2,
+        message: "hedging",
+      },
+    ];
+
+    const result = scoreSignals(signals);
+    expect(result.verdict).toBe("needs-review");
+  });
+
+  it("returns 'likely-slop' for score >= 15", () => {
+    const signals: Signal[] = [
+      {
+        detectorId: "lexical",
+        category: "lexical",
+        severity: "error",
+        score: 6,
+        message: "AI identity",
+      },
+      {
+        detectorId: "lexical",
+        category: "lexical",
+        severity: "error",
+        score: 6,
         message: "buzzword",
       },
       {
@@ -134,7 +163,7 @@ describe("scoreSignals", () => {
       },
     ];
 
-    const result = scoreSignals(signals, DEFAULT_WEIGHTS, { warn: 3, fail: 5 });
+    const result = scoreSignals(signals, DEFAULT_WEIGHTS, { warn: 3, review: 5, fail: 7 });
     expect(result.verdict).toBe("suspicious");
   });
 });
